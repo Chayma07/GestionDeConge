@@ -322,8 +322,10 @@ void FenRh::on_pushButton_clicked()
         query.bindValue(":compteur", ui->compteurSpinBox->value());
         query.exec();
 
-        QMessageBox::information(this, "Confirmation de validation", "La personne a bien été enregistrée");
-
+        if(query.isActive())
+            QMessageBox::information(this, "Confirmation de validation", "La personne a bien été enregistrée");
+        else
+            QMessageBox::critical(this, "Erreur", "Enregistrement échoué, vérifier que l'identifiant est unique");
     }
     else
         QMessageBox::critical(this, "Erreur de saisie", "Demande incorrect, tous les champs du formulaire sont à compléter");
@@ -486,8 +488,6 @@ void FenRh::on_toolButton_clicked()
     choixFiltre->addItem("Date de début");
     choixFiltre->addItem("Date de fin");
     choixFiltre->addItem("Statut de la demande");
-
-
 
     layoutFiltre->addWidget(filtreTexte);
     layoutFiltre->addWidget(choixFiltre);

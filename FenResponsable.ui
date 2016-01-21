@@ -264,7 +264,7 @@
                <widget class="QTableView" name="tableView">
                 <property name="minimumSize">
                  <size>
-                  <width>890</width>
+                  <width>915</width>
                   <height>0</height>
                  </size>
                 </property>
