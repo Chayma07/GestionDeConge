@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QTableView>
+#include <QSortFilterProxyModel>
 
 namespace Ui {
 class FenEmploye;

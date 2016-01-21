@@ -26,7 +26,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_1">
          <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -266,6 +266,9 @@
                  </size>
                 </property>
                 <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="sortingEnabled">
                  <bool>true</bool>
                 </property>
                 <attribute name="horizontalHeaderDefaultSectionSize">

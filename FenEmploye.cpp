@@ -78,6 +78,8 @@ void FenEmploye::on_actionConsulter_demande_s_triggered()
 
     QSqlQueryModel *model = new QSqlQueryModel;
 
+    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel();
+
     model->setQuery("SELECT idDemande, DATE_FORMAT(dateDebut, '%d/%m/%Y %H:%i'), DATE_FORMAT(dateFin, '%d/%m/%Y %H:%i'), statut FROM Demande WHERE idPersonne = 1");
 
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
@@ -85,7 +87,9 @@ void FenEmploye::on_actionConsulter_demande_s_triggered()
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("Date de fin"));
     model->setHeaderData(3, Qt::Horizontal, QObject::tr("Statut"));
 
-    ui->tableView->setModel(model);
+    ui->tableView->setModel(proxyModel);
+
+    proxyModel->setSourceModel(model);
 
     ui->centralwidget->show();
 

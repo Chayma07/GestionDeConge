@@ -286,6 +286,9 @@
                 <property name="gridStyle">
                  <enum>Qt::SolidLine</enum>
                 </property>
+                <property name="sortingEnabled">
+                 <bool>true</bool>
+                </property>
                 <attribute name="horizontalHeaderDefaultSectionSize">
                  <number>145</number>
                 </attribute>
@@ -332,6 +335,13 @@
                    <widget class="QToolButton" name="toolButton">
                     <property name="text">
                      <string>...</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton">
+                    <property name="text">
+                     <string>Réinitiliaser</string>
                     </property>
                    </widget>
                   </item>

@@ -7,8 +7,12 @@
 #include <QCalendarWidget>
 #include <QDateTimeEdit>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QMessageBox>
 #include <QTableView>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QSortFilterProxyModel>
 
 namespace Ui {
 class FenResponsable;
@@ -45,20 +49,39 @@ private slots:
 
     void on_buttonRefuserDemande_clicked();
 
+    void on_toolButton_clicked();
+
+    void valideFiltre_clicked();
+
+    void choixBoxFiltre(QString choix);
+
+    void on_pushButton_clicked();
+
 private:
 
     bool validationDemande();
 
     void creationQdialogCalendrier();
 
+    QSortFilterProxyModel *proxyModel;
+
     QDateTimeEdit *dateEtHeureEdit;
 
     Ui::FenResponsable *ui;
 
     QDialog *fenetreCalendrier;
+    QDialog *fenetreFiltre;
 
     QCalendarWidget *calendrier;
     int m_idPersonne;
+
+
+    QLineEdit *filtreNom;
+    QLineEdit *filtrePrenom;
+    QDateTimeEdit *filtreDDebut;
+    QDateTimeEdit *filtreDFin;
+    QComboBox *filtreStatut;
+    QComboBox *choixFiltre;
 };
 
 #endif // FENRESPONSABLE_H

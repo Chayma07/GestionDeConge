@@ -11,6 +11,8 @@
 #include <QTableView>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QComboBox>
+#include <QSortFilterProxyModel>
 
 namespace Ui {
 class FenRh;
@@ -57,7 +59,15 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void valideFiltre_clicked();
 
+    void choixBoxFiltre(QString choix);
+
+
+
+    void on_toolButton_clicked();
+
+    void on_pushButton_3_clicked();
 
 private:
 
@@ -67,12 +77,15 @@ private:
 
     void creationQdialogCalendrier();
 
+    QSortFilterProxyModel *proxyModel;
+
     QDateTimeEdit *dateEtHeureEdit;
 
     Ui::FenRh *ui;
 
     QDialog *fenetreCalendrier;
     QDialog *fenetreModif;
+    QDialog *fenetreFiltre;
 
     QCalendarWidget *calendrier;
     int m_idPersonne;
@@ -86,6 +99,13 @@ private:
     QLineEdit *mdpPersonne;
     QLineEdit *rolePersonne;
     QSpinBox *compteurPersonne;
+
+    QLineEdit *filtreNom;
+    QLineEdit *filtrePrenom;
+    QDateTimeEdit *filtreDDebut;
+    QDateTimeEdit *filtreDFin;
+    QComboBox *filtreStatut;
+    QComboBox *choixFiltre;
 };
 
 #endif // FENRH_H

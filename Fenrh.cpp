@@ -79,6 +79,8 @@ void FenRh::on_actionConsulter_demande_s_triggered()
 
     QSqlQueryModel *model = new QSqlQueryModel;
 
+    proxyModel = new QSortFilterProxyModel();
+
     model->setQuery("SELECT idDemande, nom, prenom, DATE_FORMAT(dateDebut, '%d/%m/%Y %H:%i'), DATE_FORMAT(dateFin, '%d/%m/%Y %H:%i'), statut FROM Demande d, Personne p where d.idPersonne = p.idPersonne AND (role = 'Employe' OR role ='Responsable' OR role = 'RH') AND statut != 'Responsable' AND statut != 'Refus Responsable'");
 
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
@@ -88,8 +90,8 @@ void FenRh::on_actionConsulter_demande_s_triggered()
     model->setHeaderData(4, Qt::Horizontal, QObject::tr("Date de fin"));
     model->setHeaderData(5, Qt::Horizontal, QObject::tr("Statut"));
 
-    ui->tableView->setModel(model);
-
+    ui->tableView->setModel(proxyModel);
+    proxyModel->setSourceModel(model);
     ui->centralwidget->show();
 
     ui->stackedWidget->setCurrentIndex(1);
@@ -442,4 +444,157 @@ void FenRh::modificationPersonne()
 
     fenetreModif->close();
     on_actionModifier_une_personne_triggered();
+}
+
+
+
+void FenRh::on_toolButton_clicked()
+{
+    fenetreFiltre = new QDialog(this);
+    QVBoxLayout *layoutFiltre = new QVBoxLayout;
+
+
+    QLabel *filtreTexte = new QLabel("Filtrer par ...");
+
+
+    filtreNom = new QLineEdit;
+    filtrePrenom = new QLineEdit;
+    filtreDDebut = new QDateTimeEdit;
+    filtreDFin = new QDateTimeEdit;
+    filtreStatut = new QComboBox;
+
+    choixFiltre = new QComboBox;
+
+    filtreNom->setVisible(true);
+    filtrePrenom->setVisible(false);
+    filtreDDebut->setVisible(false);
+    filtreDFin->setVisible(false);
+    filtreStatut->setVisible(false);
+
+    filtreDDebut->setDate(QDate::currentDate());
+    filtreDFin->setDate(QDate::currentDate());
+    filtreDDebut->setCalendarPopup(true);
+    filtreDFin->setCalendarPopup(true);
+
+    filtreStatut->addItem("Validée");
+    filtreStatut->addItem("Refus RH");
+    filtreStatut->addItem("Responsable RH");
+    filtreStatut->addItem("RH");
+
+    choixFiltre->addItem("Nom");
+    choixFiltre->addItem("Prénom");
+    choixFiltre->addItem("Date de début");
+    choixFiltre->addItem("Date de fin");
+    choixFiltre->addItem("Statut de la demande");
+
+
+
+    layoutFiltre->addWidget(filtreTexte);
+    layoutFiltre->addWidget(choixFiltre);
+
+    QHBoxLayout *hboxNom = new QHBoxLayout;
+    hboxNom->addWidget(filtreNom);
+    QHBoxLayout *hboxPrenom = new QHBoxLayout;
+    hboxPrenom->addWidget(filtrePrenom);
+    QHBoxLayout *hboxDDebut = new QHBoxLayout;
+    hboxDDebut->addWidget(filtreDDebut);
+    QHBoxLayout *hboxDFin = new QHBoxLayout;
+    hboxDFin->addWidget(filtreDFin);
+    QHBoxLayout *hboxStatut = new QHBoxLayout;
+    hboxStatut->addWidget(filtreStatut);
+
+    layoutFiltre->addLayout(hboxNom);
+    layoutFiltre->addLayout(hboxPrenom);
+    layoutFiltre->addLayout(hboxDDebut);
+    layoutFiltre->addLayout(hboxDFin);
+    layoutFiltre->addLayout(hboxStatut);
+
+    QHBoxLayout * hboxValide = new QHBoxLayout;
+    QPushButton *valideFiltre = new QPushButton("Valider");
+
+    valideFiltre->setMaximumWidth(100);
+
+    hboxValide->addWidget(valideFiltre);
+    layoutFiltre->addLayout(hboxValide);
+
+    fenetreFiltre->setLayout(layoutFiltre);
+
+    fenetreFiltre->show();
+
+    connect(valideFiltre, SIGNAL(clicked()), this, SLOT(valideFiltre_clicked()));
+    connect(choixFiltre, SIGNAL(currentTextChanged(QString)), this, SLOT(choixBoxFiltre(QString)));
+}
+void FenRh::choixBoxFiltre(QString choix)
+{
+    if(choix == "Nom")
+    {
+        filtreNom->setVisible(true);
+    }
+    else
+        filtreNom->setVisible(false);
+    if(choix == "Prénom")
+    {
+        filtrePrenom->setVisible(true);
+    }
+    else
+        filtrePrenom->setVisible(false);
+    if(choix == "Date de début")
+    {
+        filtreDDebut->setVisible(true);
+    }
+    else
+        filtreDDebut->setVisible(false);
+    if(choix == "Date de fin")
+        filtreDFin->setVisible(true);
+    else
+        filtreDFin->setVisible(false);
+    if(choix == "Statut de la demande")
+        filtreStatut->setVisible(true);
+    else
+        filtreStatut->setVisible(false);
+}
+
+void FenRh::valideFiltre_clicked()
+{
+    fenetreFiltre->close();
+    if(choixFiltre->currentText() == "Nom" && !filtreNom->text().isEmpty())
+    {
+        proxyModel->setFilterRegExp(QRegExp(filtreNom->text(), Qt::CaseInsensitive,
+                                                     QRegExp::FixedString));
+        proxyModel->setFilterKeyColumn(1);
+
+
+    }
+    if(choixFiltre->currentText() == "Prénom" && !filtrePrenom->text().isEmpty())
+    {
+        proxyModel->setFilterRegExp(QRegExp(filtrePrenom->text(), Qt::CaseInsensitive,
+                                                     QRegExp::FixedString));
+        proxyModel->setFilterKeyColumn(2);
+    }
+    if(choixFiltre->currentText() == "Statut de la demande")
+    {
+        proxyModel->setFilterRegExp(QRegExp(filtreStatut->currentText(), Qt::CaseInsensitive,
+                                                     QRegExp::FixedString));
+        proxyModel->setFilterKeyColumn(5);
+    }
+    if(choixFiltre->currentText() == "Date de début")
+    {
+        proxyModel->setFilterRegExp(QRegExp(filtreDDebut->dateTime().toString("dd/MM/yyyy hh:mm"), Qt::CaseInsensitive,
+                                                     QRegExp::FixedString));
+        proxyModel->setFilterKeyColumn(3);
+
+    }
+    if(choixFiltre->currentText() == "Date de fin")
+    {
+        proxyModel->setFilterRegExp(QRegExp(filtreDFin->dateTime().toString("dd/MM/yyyy hh:mm"), Qt::CaseInsensitive,
+                                                     QRegExp::FixedString));
+        proxyModel->setFilterKeyColumn(4);
+    }
+
+}
+
+
+void FenRh::on_pushButton_3_clicked()
+{
+     on_actionConsulter_demande_s_triggered();
 }
