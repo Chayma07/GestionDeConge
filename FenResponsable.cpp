@@ -81,21 +81,26 @@ void FenResponsable::on_actionConsulter_demande_s_triggered()
 
     modelSelect->setQuery("SELECT idDemande, nom, prenom, DATE_FORMAT(dateDebut, '%d/%m/%Y %H:%i'), DATE_FORMAT(dateFin, '%d/%m/%Y %H:%i'), statut FROM Demande d, Personne p where d.idPersonne = p.idPersonne AND (role = 'Employe' OR role ='Responsable')");
 
-    modelSelect->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
-    modelSelect->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
-    modelSelect->setHeaderData(2, Qt::Horizontal, QObject::tr("Prénom"));
-    modelSelect->setHeaderData(3, Qt::Horizontal, QObject::tr("Date de début"));
-    modelSelect->setHeaderData(4, Qt::Horizontal, QObject::tr("Date de fin"));
-    modelSelect->setHeaderData(5, Qt::Horizontal, QObject::tr("Statut"));
+    if(modelSelect->query().isActive()) // test la validité de la requête sql
+    {
+        modelSelect->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
+        modelSelect->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
+        modelSelect->setHeaderData(2, Qt::Horizontal, QObject::tr("Prénom"));
+        modelSelect->setHeaderData(3, Qt::Horizontal, QObject::tr("Date de début"));
+        modelSelect->setHeaderData(4, Qt::Horizontal, QObject::tr("Date de fin"));
+        modelSelect->setHeaderData(5, Qt::Horizontal, QObject::tr("Statut"));
 
 
-    ui->tableView->setModel(proxyModel);
+        ui->tableView->setModel(proxyModel);
 
-    proxyModel->setSourceModel(modelSelect);
+        proxyModel->setSourceModel(modelSelect);
 
-    ui->centralwidget->show();
+        ui->centralwidget->show();
 
-    ui->stackedWidget->setCurrentIndex(1);
+        ui->stackedWidget->setCurrentIndex(1);
+    }
+    else
+        QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + modelSelect->query().lastError().text());
 }
 
 void FenResponsable::on_toolButton_clicked()    // bouton filtre
@@ -309,8 +314,10 @@ void FenResponsable::on_buttonValider_clicked()
         query.bindValue(":nbJour", nbJour);
         query.exec();
 
-        QMessageBox::information(this, "Confirmation de validation", "Votre demande a bien été enregistrée");
-
+        if(query.isActive())
+            QMessageBox::information(this, "Confirmation de validation", "Votre demande a bien été enregistrée");
+        else
+            QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
     }
     else
         QMessageBox::critical(this, "Erreur de saisie", "Demande incorrect, les dates choisies ne sont pas valides");
@@ -356,6 +363,12 @@ void FenResponsable::on_buttonSupprimer_clicked()
 
             QSqlQuery query;
             query.exec("DELETE FROM Demande WHERE idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
+
+            if(query.isActive())
+                QMessageBox::information(this, "Confirmation de suppression", "Votre demande a bien été supprimée");
+            else
+                QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
+
             on_actionConsulter_demande_s_triggered();
        }
 
@@ -385,7 +398,10 @@ void FenResponsable::on_buttonValideDemande_clicked()
             query.exec("UPDATE Demande SET statut = 'RH' WHERE idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
             on_actionConsulter_demande_s_triggered();
 
-            QMessageBox::information(this, "Confimation", "Demande validée et Transmise au service RH");
+            if(query.isActive())
+                QMessageBox::information(this, "Confirmation", "Demande validée et Transmise au service RH");
+            else
+                QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
        }
     }
     else
@@ -413,7 +429,11 @@ void FenResponsable::on_buttonRefuserDemande_clicked()
             query.exec("UPDATE Demande SET statut = 'Refus Responsable' WHERE idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
             on_actionConsulter_demande_s_triggered();
 
-            QMessageBox::information(this, "Confimation", "Demande refusée");
+            if(query.isActive())
+                QMessageBox::information(this, "Confimation", "Demande refusée");
+            else
+                QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
+
        }
 
     }

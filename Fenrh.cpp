@@ -83,6 +83,9 @@ void FenRh::on_actionConsulter_demande_s_triggered()
 
     model->setQuery("SELECT idDemande, nom, prenom, DATE_FORMAT(dateDebut, '%d/%m/%Y %H:%i'), DATE_FORMAT(dateFin, '%d/%m/%Y %H:%i'), statut FROM Demande d, Personne p where d.idPersonne = p.idPersonne AND (role = 'Employe' OR role ='Responsable' OR role = 'RH') AND statut != 'Responsable' AND statut != 'Refus Responsable'");
 
+    if(model->query.isActive())
+    {
+
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
     model->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("Prénom"));
@@ -95,6 +98,9 @@ void FenRh::on_actionConsulter_demande_s_triggered()
     ui->centralwidget->show();
 
     ui->stackedWidget->setCurrentIndex(1);
+    }
+    else
+        QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + model->query.lastError().text());
 }
 
 void FenRh::on_actionDeconnection_triggered()
@@ -160,8 +166,10 @@ void FenRh::on_buttonValider_clicked()
         query.bindValue(":nbJour", nbJour);
         query.exec();
 
-        QMessageBox::information(this, "Confirmation de validation", "Votre demande a bien été enregistrée");
-
+        if(query.isActive())
+            QMessageBox::information(this, "Confirmation de validation", "Votre demande a bien été enregistrée");
+        else
+            QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
     }
     else
         QMessageBox::critical(this, "Erreur de saisie", "Demande incorrect, les dates choisies ne sont pas valides");
@@ -208,6 +216,11 @@ void FenRh::on_buttonSupprimer_clicked()
             QSqlQuery query;
             query.exec("DELETE FROM Demande WHERE idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
             on_actionConsulter_demande_s_triggered();
+
+            if(query.isActive())
+                QMessageBox::information(this, "Confirmation de suppression", "Votre demande a bien été supprimée");
+            else
+                QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
        }
 
     }
@@ -223,6 +236,9 @@ void FenRh::on_buttonValideDemande_clicked()
     {
 
         QSqlQuery query("SELECT compteur, nbJour FROM Personne p, Demande d WHERE p.idPersonne = d.idPersonne AND idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
+
+        if(!query.isActive())
+            QMessageBox::critical(this, "Erreur", "La base de donnée n'a pas pu récupérer les informations de compteur sur cette personne");
 
         int totalCompteur = 0, totalJour = 0;
 
@@ -256,7 +272,11 @@ void FenRh::on_buttonValideDemande_clicked()
                 query.exec("UPDATE Demande d, Personne p SET statut = 'Validée', compteur = '" + QString::number(totalCompteur) + "' WHERE p.idPersonne = d.idPersonne AND idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
                 on_actionConsulter_demande_s_triggered();
 
-                QMessageBox::information(this, "Confimation", "Demande validée");
+                if(query.isActive())
+                    QMessageBox::information(this, "Confimation", "Demande validée");
+                else
+                    QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
+
            }
         }
         else
@@ -289,9 +309,11 @@ void FenRh::on_buttonRefuserDemande_clicked()
             query.exec("UPDATE Demande SET statut = 'Refus RH' WHERE idDemande = '" + ui->tableView->model()->data(ui->tableView->model()->index(select->currentIndex().row(), 0)).toString() + "'" );
             on_actionConsulter_demande_s_triggered();
 
-            QMessageBox::information(this, "Confimation", "Demande refusée");
+            if(query.isActive())
+                QMessageBox::information(this, "Confimation", "Demande refusée");
+            else
+                QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + query.lastError().text());
        }
-
     }
     else
         QMessageBox::critical(this, "Erreur", "Vous ne pouvez pas refuser cette demande");
@@ -358,20 +380,24 @@ void FenRh::on_actionModifier_une_personne_triggered()
 
     model->setQuery("SELECT nom, prenom, identifiant, mdp, role, compteur FROM Personne");
 
+    if(model->query().isActive())
+    {
+        model->setHeaderData(0, Qt::Horizontal, QObject::tr("Nom"));
+        model->setHeaderData(1, Qt::Horizontal, QObject::tr("Prénom"));
+        model->setHeaderData(2, Qt::Horizontal, QObject::tr("Identifiant"));
+        model->setHeaderData(3, Qt::Horizontal, QObject::tr("Mot de passe"));
+        model->setHeaderData(4, Qt::Horizontal, QObject::tr("Role"));
+        model->setHeaderData(5, Qt::Horizontal, QObject::tr("Compteur"));
 
-    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Nom"));
-    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Prénom"));
-    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Identifiant"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Mot de passe"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Role"));
-    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Compteur"));
-
-    ui->tableView_2->setModel(model);
-    ui->centralwidget->show();
-    ui->stackedWidget->setCurrentIndex(3);
+        ui->tableView_2->setModel(model);
+        ui->centralwidget->show();
+        ui->stackedWidget->setCurrentIndex(3);
+    }
+    else
+        QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + model->query().lastError().text());
 }
 
-void FenRh::on_pushButton_2_clicked()
+void FenRh::on_pushButton_2_clicked() // Bouton modifier personne sélectionnée
 {
 
     QItemSelectionModel *select = ui->tableView_2->selectionModel(); // selection de la data dans le tableau
@@ -382,48 +408,51 @@ void FenRh::on_pushButton_2_clicked()
         QSqlQuery query;
         query.exec("SELECT nom, prenom, identifiant, mdp, role, compteur FROM Personne WHERE identifiant = '" + ui->tableView_2->model()->data(ui->tableView_2->model()->index(select->currentIndex().row(), 2)).toString() + "'" );
 
-        fenetreModif = new QDialog(this);
-        QVBoxLayout *layoutModif = new QVBoxLayout;
-        nomPersonne = new QLineEdit;
-        prenomPersonne = new QLineEdit;
-        identifiantPersonne = new QLineEdit;
-        mdpPersonne = new QLineEdit;
-        rolePersonne = new QLineEdit;
-        compteurPersonne = new QSpinBox;
+        if(query.isActive())
+        {
+            fenetreModif = new QDialog(this);
+            QVBoxLayout *layoutModif = new QVBoxLayout;
+            nomPersonne = new QLineEdit;
+            prenomPersonne = new QLineEdit;
+            identifiantPersonne = new QLineEdit;
+            mdpPersonne = new QLineEdit;
+            rolePersonne = new QLineEdit;
+            compteurPersonne = new QSpinBox;
 
-        while (query.next()) {
-            nomPersonne->setText(query.value(0).toString());
-            prenomPersonne->setText(query.value(1).toString());
-            identifiantPersonne->setText(query.value(2).toString());
-            mdpPersonne->setText(query.value(3).toString());
-            rolePersonne->setText(query.value(4).toString());
-            compteurPersonne->setValue(query.value(5).toInt());
+            while (query.next()) {
+                nomPersonne->setText(query.value(0).toString());
+                prenomPersonne->setText(query.value(1).toString());
+                identifiantPersonne->setText(query.value(2).toString());
+                mdpPersonne->setText(query.value(3).toString());
+                rolePersonne->setText(query.value(4).toString());
+                compteurPersonne->setValue(query.value(5).toInt());
+            }
+
+            identifiantPer = identifiantPersonne->text(); // stocke l'identifiant actuel
+
+            QFormLayout *formLayout = new QFormLayout;
+            formLayout->addRow(tr("Nom:"), nomPersonne);
+            formLayout->addRow(tr("Prenom:"), prenomPersonne);
+            formLayout->addRow(tr("Identifiant:"), identifiantPersonne);
+            formLayout->addRow(tr("Mot de passe:"), mdpPersonne);
+            formLayout->addRow(tr("Role:"), rolePersonne);
+            formLayout->addRow(tr("Compteur:"), compteurPersonne);
+
+            layoutModif->addLayout(formLayout);
+
+            QPushButton *valideModif = new QPushButton("Valider modification");
+
+            connect(valideModif, SIGNAL(clicked()), this, SLOT(modificationPersonne()));
+
+            layoutModif->addWidget(valideModif);
+
+            fenetreModif->setLayout(layoutModif);
+
+            fenetreModif->resize(300,300);
+            fenetreModif->show();
         }
-
-        identifiantPer = identifiantPersonne->text(); // stocke l'identifiant actuel
-
-        QFormLayout *formLayout = new QFormLayout;
-        formLayout->addRow(tr("Nom:"), nomPersonne);
-        formLayout->addRow(tr("Prenom:"), prenomPersonne);
-        formLayout->addRow(tr("Identifiant:"), identifiantPersonne);
-        formLayout->addRow(tr("Mot de passe:"), mdpPersonne);
-        formLayout->addRow(tr("Role:"), rolePersonne);
-        formLayout->addRow(tr("Compteur:"), compteurPersonne);
-
-        layoutModif->addLayout(formLayout);
-
-        QPushButton *valideModif = new QPushButton("Valider modification");
-
-        connect(valideModif, SIGNAL(clicked()), this, SLOT(modificationPersonne()));
-
-        layoutModif->addWidget(valideModif);
-
-        fenetreModif->setLayout(layoutModif);
-
-        fenetreModif->resize(300,300);
-        fenetreModif->show();
-
-
+        else
+            QMessageBox::critical(this, "Erreur", "Erreur de base de donnée :" + query.lastError().text());
     }
     else
         QMessageBox::critical(this, "Erreur", "Merci de faire votre sélection avant de cliquer sur modifier");
@@ -435,7 +464,6 @@ void FenRh::modificationPersonne()
     query.prepare("UPDATE Personne SET nom = :nom, prenom = :prenom, identifiant = :identifiant, mdp = :mdp, role = :role, compteur = :compteur WHERE identifiant = '" + identifiantPer + "'");
 
 
-
     query.bindValue(":nom", nomPersonne->text());
     query.bindValue(":prenom", prenomPersonne->text());
     query.bindValue(":identifiant", identifiantPersonne->text());
@@ -443,6 +471,9 @@ void FenRh::modificationPersonne()
     query.bindValue(":role", rolePersonne->text());
     query.bindValue(":compteur", compteurPersonne->value());
     query.exec();
+
+    if(!query.isActive())
+        QMessageBox::critical(this, "Erreur", "Erreur de base de donnée :" + query.lastError().text());
 
     fenetreModif->close();
     on_actionModifier_une_personne_triggered();
@@ -594,7 +625,7 @@ void FenRh::valideFiltre_clicked()
 }
 
 
-void FenRh::on_pushButton_3_clicked()
+void FenRh::on_pushButton_3_clicked() // bouton réinitialiser
 {
      on_actionConsulter_demande_s_triggered();
 }

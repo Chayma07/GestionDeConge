@@ -82,18 +82,24 @@ void FenEmploye::on_actionConsulter_demande_s_triggered()
 
     model->setQuery("SELECT idDemande, DATE_FORMAT(dateDebut, '%d/%m/%Y %H:%i'), DATE_FORMAT(dateFin, '%d/%m/%Y %H:%i'), statut FROM Demande WHERE idPersonne = 1");
 
-    model->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
-    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Date de début"));
-    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Date de fin"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Statut"));
+    if(model->query().isActive())  // test la validité de la requête sql
+    {
+        model->setHeaderData(0, Qt::Horizontal, QObject::tr("N° Demande"));
+        model->setHeaderData(1, Qt::Horizontal, QObject::tr("Date de début"));
+        model->setHeaderData(2, Qt::Horizontal, QObject::tr("Date de fin"));
+        model->setHeaderData(3, Qt::Horizontal, QObject::tr("Statut"));
 
-    ui->tableView->setModel(proxyModel);
+        ui->tableView->setModel(proxyModel);
 
-    proxyModel->setSourceModel(model);
+        proxyModel->setSourceModel(model);
 
-    ui->centralwidget->show();
+        ui->centralwidget->show();
 
-    ui->stackedWidget->setCurrentIndex(1);
+        ui->stackedWidget->setCurrentIndex(1);
+    }
+    else
+        QMessageBox::critical(this, "Erreur", "Erreur de base de donnée : " + model->query().lastError().text());
+
 }
 
 void FenEmploye::on_actionDeconnection_triggered()
